@@ -26,12 +26,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.listycity.ui.theme.ListyCityTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.background
 
 @Composable
 fun CityListScreen(
     cities: List<City>,
     onAddCity: (City) -> Unit,
     onUpdateCity: (City, City) -> Unit,
+    onDeleteCity: (City) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var newCityName by remember { mutableStateOf("") }
@@ -155,22 +161,43 @@ fun CityListScreen(
                 }
             }
         }
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            itemsIndexed(cities) { index, city ->
-                CityRow(
-                    city = city,
-                    onClick = {
-                        showAddCityFields = false
-                        newCityName = ""
-                        newProvinceName = ""
-                        selectedCity = city
-                        editedCityName = city.name
-                        editedProvinceName = city.province
+
+        Box(
+            modifier = Modifier.weight(1f).fillMaxWidth()
+        ) {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                itemsIndexed(cities) { index, city ->
+                    CityRow(
+                        city = city,
+                        isSelected = city == selectedCity,
+                        onClick = {
+                            showAddCityFields = false
+                            newCityName = ""
+                            newProvinceName = ""
+                            selectedCity = city
+                            editedCityName = city.name
+                            editedProvinceName = city.province
+                        }
+                    )
+
+                    if (index < cities.lastIndex) {
+                        HorizontalDivider()
                     }
-                )
-                if (index < cities.lastIndex) {
-                    HorizontalDivider()
                 }
+            }
+            Button(
+                onClick = {
+                    selectedCity?.let { onDeleteCity(it) }
+                    selectedCity = null
+                    editedCityName = ""
+                    editedProvinceName = ""
+                },
+                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Red
+                )
+            ) {
+                Text(text = "DELETE CITY")
             }
         }
     }
@@ -180,11 +207,13 @@ fun CityListScreen(
 @Composable
 fun CityRow(
     city: City,
+    isSelected: Boolean,
     onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .background(if (isSelected) Color(0xFFFFC1E3) else Color.Transparent)
             .clickable { onClick() }
             .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
@@ -213,7 +242,8 @@ fun CityListScreenPreview() {
                 City("Calgary", "AB")
             ),
             onAddCity = {},
-            onUpdateCity = { _, _ -> }
+            onUpdateCity = { _, _ -> },
+            onDeleteCity = {}
         )
     }
 }
